@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, CreditCard, Minus, Plus, ShoppingBag, Trash2, Wallet } from 'lucide-react'
+import { CheckCircle2, HandCoins, Minus, Plus, ShoppingBag, Trash2, Wallet } from 'lucide-react'
 import ImageFallback from '../components/ImageFallback'
 import { useApp } from '../context/AppContext'
+import { restaurant } from '../data/menu'
 
 const fmt = (n) => n.toLocaleString('fa-IR')
 const FEE = 15000
 
 export default function CartScreen({ tableNumber, onGoToMenu, onGoToRating }) {
-  const { cartLines, cartTotal, setQty, clearCart, setLastOrder } = useApp()
+  const { cartLines, cartTotal, setQty, clearCart, setLastOrder, walletBalance, spendFromWallet } = useApp()
   const [stage, setStage] = useState('cart') // cart | paying | done
-  const [method, setMethod] = useState('card')
+  const [method, setMethod] = useState('inPerson')
+  const [payError, setPayError] = useState('')
 
   if (stage === 'done') {
     return (
@@ -126,28 +128,31 @@ export default function CartScreen({ tableNumber, onGoToMenu, onGoToRating }) {
             className="mt-6"
           >
             <h3 className="text-sm font-bold mb-3">روش پرداخت</h3>
-            <div className="flex gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
-                onClick={() => setMethod('card')}
+                onClick={() => { setMethod('inPerson'); setPayError('') }}
                 className={`flex-1 glass rounded-2xl p-4 flex flex-col items-center gap-2 border ${
-                  method === 'card' ? 'border-orange-500' : 'border-transparent'
+                  method === 'inPerson' ? 'border-orange-500' : 'border-transparent'
                 }`}
               >
-                <CreditCard className={`w-5 h-5 ${method === 'card' ? 'text-orange-500' : 'text-muted'}`} />
-                <span className="text-xs font-medium">کارت بانکی</span>
+                <HandCoins className={`w-5 h-5 ${method === 'inPerson' ? 'text-orange-500' : 'text-muted'}`} />
+                <span className="text-xs font-medium">پرداخت حضوری</span>
+                <span className="text-[10px] text-muted">پرداخت هنگام تحویل یا صندوق</span>
               </button>
               <button
-                onClick={() => setMethod('wallet')}
+                onClick={() => { setMethod('wallet'); setPayError('') }}
                 className={`flex-1 glass rounded-2xl p-4 flex flex-col items-center gap-2 border ${
                   method === 'wallet' ? 'border-orange-500' : 'border-transparent'
                 }`}
               >
                 <Wallet className={`w-5 h-5 ${method === 'wallet' ? 'text-orange-500' : 'text-muted'}`} />
-                <span className="text-xs font-medium">کیف پول هوتی</span>
+                <span className="text-xs font-medium">کیف پول هوتی بات</span>
+                <span className="text-[10px] text-muted tnum">موجودی: {fmt(walletBalance)} تومان</span>
               </button>
             </div>
+            {payError && <p className="mt-3 text-xs text-ember text-center">{payError}</p>}
             <p className="mt-4 text-[11px] text-muted text-center">
-              این یک درگاه پرداخت نمایشی است — پرداخت واقعی انجام نمی‌شود.
+              این یک پرداخت نمایشی است؛ در حالت کیف پول، مبلغ از موجودی هوتی بات کم می‌شود.
             </p>
           </motion.div>
         )}
@@ -166,13 +171,18 @@ export default function CartScreen({ tableNumber, onGoToMenu, onGoToRating }) {
           {stage === 'paying' && (
             <button
               onClick={() => {
-                setLastOrder({ total: cartTotal + FEE, items: cartLines })
+                const payable = cartTotal + FEE
+                if (method === 'wallet' && !spendFromWallet(payable)) {
+                  setPayError('موجودی کیف پول کافی نیست؛ لطفاً کیف پول رو شارژ کن یا پرداخت حضوری رو انتخاب کن.')
+                  return
+                }
+                setLastOrder({ total: payable, items: cartLines, restaurantName: restaurant.name, orderedAt: Date.now(), paymentMethod: method })
                 clearCart()
                 setStage('done')
               }}
               className="w-full h-14 rounded-full bg-orange-500 shadow-glow text-white font-bold"
             >
-              پرداخت {fmt(cartTotal + FEE)} تومان
+              {method === 'wallet' ? 'پرداخت با کیف پول' : 'ثبت پرداخت حضوری'} · {fmt(cartTotal + FEE)} تومان
             </button>
           )}
         </div>

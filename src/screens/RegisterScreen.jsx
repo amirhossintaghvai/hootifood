@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight, Eye, EyeOff, Lock, Phone, RefreshCw, User } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, KeyRound, Lock, Phone, RefreshCw, User } from 'lucide-react'
 import ThemeToggle from '../components/ThemeToggle'
 
 const genDigits = (n) =>
@@ -9,7 +9,6 @@ const genDigits = (n) =>
 function Captcha({ value, onRefresh }) {
   return (
     <div className="relative select-none glass rounded-2xl h-14 flex items-center justify-center gap-2 overflow-hidden">
-      {/* noise lines */}
       <svg className="absolute inset-0 w-full h-full opacity-30" aria-hidden="true">
         <line x1="5%" y1="20%" x2="95%" y2="75%" stroke="currentColor" strokeWidth="1" className="text-orange-500" />
         <line x1="10%" y1="85%" x2="90%" y2="15%" stroke="currentColor" strokeWidth="1" className="text-orange-500" />
@@ -55,6 +54,7 @@ function Field({ icon: Icon, error, children }) {
 }
 
 export default function RegisterScreen({ onBack, onRegistered }) {
+  const [mode, setMode] = useState('signup')
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
@@ -65,17 +65,26 @@ export default function RegisterScreen({ onBack, onRegistered }) {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
+  const isSignup = mode === 'signup'
+  const isForgot = mode === 'forgot'
+
   const refreshCaptcha = () => {
     setCaptcha(genDigits(5))
     setCaptchaInput('')
   }
 
+  const switchMode = (nextMode) => {
+    setMode(nextMode)
+    setErrors({})
+    refreshCaptcha()
+  }
+
   const validate = () => {
     const e = {}
-    if (!fullName.trim() || fullName.trim().length < 3) e.fullName = 'نام و نام خانوادگی رو کامل وارد کن'
+    if (isSignup && (!fullName.trim() || fullName.trim().length < 3)) e.fullName = 'نام و نام خانوادگی رو کامل وارد کن'
     if (!/^09\d{9}$/.test(phone.trim())) e.phone = 'شماره موبایل معتبر نیست (مثال: ۰۹۱۲۳۴۵۶۷۸۹)'
-    if (!password || password.length < 6) e.password = 'رمز عبور باید حداقل ۶ کاراکتر باشه'
-    if (confirm !== password) e.confirm = 'تکرار رمز عبور با رمز عبور یکی نیست'
+    if (!isForgot && (!password || password.length < 6)) e.password = 'رمز عبور باید حداقل ۶ کاراکتر باشه'
+    if (isSignup && confirm !== password) e.confirm = 'تکرار رمز عبور با رمز عبور یکی نیست'
     if (captchaInput.trim() !== captcha) e.captcha = 'کد امنیتی درست وارد نشده'
     setErrors(e)
     return Object.keys(e).length === 0
@@ -90,13 +99,22 @@ export default function RegisterScreen({ onBack, onRegistered }) {
     setSubmitting(true)
     setTimeout(() => {
       setSubmitting(false)
-      onRegistered({ fullName: fullName.trim(), phone: phone.trim() })
+      const fallbackName = phone.trim() ? `کاربر ${phone.trim().slice(-4)}` : 'کاربر هوتی'
+      onRegistered({ fullName: isSignup ? fullName.trim() : fallbackName, phone: phone.trim(), authMode: mode })
     }, 700)
   }
 
+  const title = isSignup ? 'ثبت‌نام در هوتی فود' : isForgot ? 'بازیابی رمز عبور' : 'ورود به هوتی فود'
+  const subtitle = isSignup
+    ? 'حساب بساز تا سفارش، کیف پول و تاریخچه‌ات همیشه همراهت باشه.'
+    : isForgot
+      ? 'شماره موبایل حسابت رو وارد کن تا کد بازیابی برات آماده بشه.'
+      : 'با شماره موبایل و رمز عبورت وارد شو؛ اگر رمزت یادت نیست از بازیابی استفاده کن.'
+  const submitLabel = isSignup ? 'ثبت‌نام و دریافت کد تایید' : isForgot ? 'ارسال کد بازیابی' : 'ورود و دریافت کد تایید'
+
   return (
-    <div className="min-h-screen flex flex-col px-6 pt-6 pb-10">
-      <div className="flex items-center justify-between">
+    <div className="min-h-screen flex flex-col px-5 sm:px-6 pt-6 pb-10">
+      <div className="w-full max-w-5xl mx-auto flex items-center justify-between">
         <button
           onClick={onBack}
           className="w-10 h-10 rounded-full glass flex items-center justify-center"
@@ -107,26 +125,59 @@ export default function RegisterScreen({ onBack, onRegistered }) {
         <ThemeToggle />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="mt-4"
-      >
-        <h1 className="text-2xl font-extrabold">ثبت‌نام در هوتی فود</h1>
-        <p className="mt-1.5 text-sm text-muted leading-6">
-          قبل از اسکن میز، یه حساب کاربری بساز تا بتونی سفارش بدی و امتیاز ثبت کنی.
-        </p>
+      <div className="w-full max-w-5xl mx-auto flex-1 grid lg:grid-cols-[0.9fr_1.1fr] gap-6 lg:gap-10 items-center">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-5 lg:mt-0"
+        >
+          <div className="glass-strong rounded-[32px] p-5 sm:p-6 shadow-glass">
+            <div className="inline-flex rounded-full glass p-1 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => switchMode('login')}
+                className={`px-4 py-2 rounded-full ${mode === 'login' ? 'bg-orange-500 text-white shadow-glow-sm' : 'text-muted'}`}
+              >
+                ورود
+              </button>
+              <button
+                type="button"
+                onClick={() => switchMode('signup')}
+                className={`px-4 py-2 rounded-full ${mode === 'signup' ? 'bg-orange-500 text-white shadow-glow-sm' : 'text-muted'}`}
+              >
+                ثبت‌نام
+              </button>
+            </div>
+            <h1 className="mt-5 text-2xl sm:text-3xl font-extrabold">{title}</h1>
+            <p className="mt-2 text-sm text-muted leading-7">{subtitle}</p>
+            <div className="mt-5 hidden lg:block rounded-[28px] bg-orange-500/12 p-5">
+              <KeyRound className="w-8 h-8 text-orange-500" />
+              <p className="mt-3 text-sm leading-7 text-muted">
+                تجربه ورود و ثبت‌نام برای موبایل یک ستونه و برای لپ‌تاپ دو ستونه چیده شده تا فرم کوتاه‌تر و قابل‌خواندن‌تر باشه.
+              </p>
+            </div>
+          </div>
+        </motion.div>
 
-        <form onSubmit={handleSubmit} className="mt-7 flex flex-col gap-4" noValidate>
-          <Field icon={User} error={errors.fullName}>
-            <input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="نام و نام خانوادگی"
-              className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted/70"
-            />
-          </Field>
+        <motion.form
+          onSubmit={handleSubmit}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+          className="glass-strong rounded-[32px] shadow-glass p-4 sm:p-6 flex flex-col gap-4"
+          noValidate
+        >
+          {isSignup && (
+            <Field icon={User} error={errors.fullName}>
+              <input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="نام و نام خانوادگی"
+                className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted/70"
+              />
+            </Field>
+          )}
 
           <Field icon={Phone} error={errors.phone}>
             <input
@@ -140,28 +191,32 @@ export default function RegisterScreen({ onBack, onRegistered }) {
             />
           </Field>
 
-          <Field icon={Lock} error={errors.password}>
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type={showPass ? 'text' : 'password'}
-              placeholder="رمز عبور"
-              className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted/70"
-            />
-            <button type="button" onClick={() => setShowPass((s) => !s)} className="shrink-0 text-muted">
-              {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </Field>
+          {!isForgot && (
+            <Field icon={Lock} error={errors.password}>
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type={showPass ? 'text' : 'password'}
+                placeholder="رمز عبور"
+                className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted/70"
+              />
+              <button type="button" onClick={() => setShowPass((s) => !s)} className="shrink-0 text-muted">
+                {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </Field>
+          )}
 
-          <Field icon={Lock} error={errors.confirm}>
-            <input
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              type={showPass ? 'text' : 'password'}
-              placeholder="تکرار رمز عبور"
-              className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted/70"
-            />
-          </Field>
+          {isSignup && (
+            <Field icon={Lock} error={errors.confirm}>
+              <input
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                type={showPass ? 'text' : 'password'}
+                placeholder="تکرار رمز عبور"
+                className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted/70"
+              />
+            </Field>
+          )}
 
           <div>
             <p className="text-xs font-medium text-muted mb-2 px-1">کد امنیتی زیر رو وارد کن</p>
@@ -183,12 +238,20 @@ export default function RegisterScreen({ onBack, onRegistered }) {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-3 w-full h-14 rounded-full bg-orange-500 shadow-glow text-white font-bold disabled:opacity-60 transition-opacity"
+            className="mt-1 w-full h-14 rounded-full bg-orange-500 shadow-glow text-white font-bold disabled:opacity-60 transition-opacity"
           >
-            {submitting ? 'در حال ارسال کد…' : 'ثبت‌نام و دریافت کد تایید'}
+            {submitting ? 'در حال پردازش…' : submitLabel}
           </button>
-        </form>
-      </motion.div>
+
+          <button
+            type="button"
+            onClick={() => switchMode(isForgot ? 'login' : 'forgot')}
+            className="text-xs font-bold text-orange-500 underline underline-offset-4"
+          >
+            {isForgot ? 'بازگشت به ورود' : 'رمز عبورم را فراموش کرده‌ام'}
+          </button>
+        </motion.form>
+      </div>
     </div>
   )
 }

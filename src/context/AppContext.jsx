@@ -53,6 +53,17 @@ export function AppProvider({ children }) {
   const cartTotal = cartLines.reduce((s, l) => s + l.qty * l.item.price, 0)
 
   const [lastOrder, setLastOrder] = useState(null)
+  const [walletBalance, setWalletBalance] = useState(240000)
+  const chargeWallet = (amount) => setWalletBalance((balance) => balance + amount)
+  const spendFromWallet = (amount) => {
+    let paid = false
+    setWalletBalance((balance) => {
+      if (balance < amount) return balance
+      paid = true
+      return balance - amount
+    })
+    return paid
+  }
 
   const value = {
     theme,
@@ -71,6 +82,9 @@ export function AppProvider({ children }) {
     clearCart,
     lastOrder,
     setLastOrder,
+    walletBalance,
+    chargeWallet,
+    spendFromWallet,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

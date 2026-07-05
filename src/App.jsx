@@ -7,6 +7,8 @@ import SplashScreen from './screens/SplashScreen'
 import RegisterScreen from './screens/RegisterScreen'
 import OtpScreen from './screens/OtpScreen'
 import ScanScreen from './screens/ScanScreen'
+import HomeScreen from './screens/HomeScreen'
+import NearbyScreen from './screens/NearbyScreen'
 import MenuScreen from './screens/MenuScreen'
 import CartScreen from './screens/CartScreen'
 import AssistantScreen from './screens/AssistantScreen'
@@ -14,8 +16,8 @@ import RatingScreen from './screens/RatingScreen'
 
 function Shell() {
   const { session, setSession, setUser } = useApp()
-  const [stage, setStage] = useState('splash') // splash | register | otp | scan | app
-  const [tab, setTab] = useState('menu')
+  const [stage, setStage] = useState('splash') // splash | register | otp | app
+  const [tab, setTab] = useState('home')
   const [pendingUser, setPendingUser] = useState(null) // { fullName, phone } awaiting OTP
 
   const handleScanned = (decodedText) => {
@@ -59,15 +61,10 @@ function Shell() {
                 onBack={() => setStage('register')}
                 onVerified={() => {
                   setUser(pendingUser)
-                  setStage('scan')
+                  setStage('app')
+                  setTab('home')
                 }}
               />
-            </motion.div>
-          )}
-
-          {stage === 'scan' && (
-            <motion.div key="scan" exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-              <ScanScreen onBack={() => setStage('splash')} onScanned={handleScanned} />
             </motion.div>
           )}
 
@@ -78,6 +75,10 @@ function Shell() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
+              {tab === 'home' && <HomeScreen onNavigate={setTab} />}
+              {tab === 'scan' && <ScanScreen onBack={() => setTab('home')} onScanned={handleScanned} />}
+              {tab === 'nearby' && <NearbyScreen onOrder={() => setTab('menu')} />}
+              {tab === 'history' && <HomeScreen onNavigate={setTab} />}
               {tab === 'menu' && <MenuScreen tableNumber={session?.tableNumber} />}
               {tab === 'cart' && (
                 <CartScreen

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2, CreditCard, Minus, Plus, ShoppingBag, Trash2, Wallet } from 'lucide-react'
 import ImageFallback from '../components/ImageFallback'
 import { useApp } from '../context/AppContext'
+import { restaurant } from '../data/menu'
 
 const fmt = (n) => n.toLocaleString('fa-IR')
 const FEE = 15000
@@ -166,7 +167,7 @@ export default function CartScreen({ tableNumber, onGoToMenu, onGoToRating }) {
           {stage === 'paying' && (
             <button
               onClick={() => {
-                setLastOrder({ total: cartTotal + FEE, items: cartLines })
+                setLastOrder({ total: cartTotal + FEE, items: cartLines, restaurantName: restaurant.name, orderedAt: Date.now() })
                 clearCart()
                 setStage('done')
               }}

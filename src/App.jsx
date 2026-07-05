@@ -9,6 +9,8 @@ import OtpScreen from './screens/OtpScreen'
 import ScanScreen from './screens/ScanScreen'
 import HomeScreen from './screens/HomeScreen'
 import NearbyScreen from './screens/NearbyScreen'
+import SettingsScreen from './screens/SettingsScreen'
+import WalletScreen from './screens/WalletScreen'
 import MenuScreen from './screens/MenuScreen'
 import CartScreen from './screens/CartScreen'
 import AssistantScreen from './screens/AssistantScreen'
@@ -78,6 +80,8 @@ function Shell() {
               {tab === 'home' && <HomeScreen onNavigate={setTab} />}
               {tab === 'scan' && <ScanScreen onBack={() => setTab('home')} onScanned={handleScanned} />}
               {tab === 'nearby' && <NearbyScreen onOrder={() => setTab('menu')} />}
+              {tab === 'settings' && <SettingsScreen onNavigate={setTab} />}
+              {tab === 'wallet' && <WalletScreen />}
               {tab === 'history' && <HomeScreen onNavigate={setTab} />}
               {tab === 'menu' && <MenuScreen tableNumber={session?.tableNumber} />}
               {tab === 'cart' && (

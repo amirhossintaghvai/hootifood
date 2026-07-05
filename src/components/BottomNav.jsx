@@ -1,10 +1,11 @@
-import { Home, Sparkles, ShoppingBag, Star, UtensilsCrossed } from 'lucide-react'
+import { Home, Sparkles, ShoppingBag, Star, UtensilsCrossed, Wallet } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 
 const TABS = [
   { id: 'home', label: 'خانه', icon: Home },
   { id: 'menu', label: 'منو', icon: UtensilsCrossed },
   { id: 'assistant', label: 'دستیار', icon: Sparkles },
+  { id: 'wallet', label: 'کیف پول', icon: Wallet },
   { id: 'cart', label: 'سبد', icon: ShoppingBag },
   { id: 'rating', label: 'امتیاز', icon: Star },
 ]

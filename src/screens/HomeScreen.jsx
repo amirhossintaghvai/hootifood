@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import {
   Bike,
   Bot,
+  User,
   ChevronLeft,
   History,
   MapPin,
@@ -49,12 +50,22 @@ export default function HomeScreen({ onNavigate }) {
 
   return (
     <div className="min-h-screen px-5 pt-5 pb-32">
+      <div className="max-w-6xl mx-auto">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-muted">{firstName ? `${firstName} عزیز، خوش اومدی 👋` : 'به هوتی فود خوش اومدی'}</p>
           <h1 className="mt-1 text-2xl font-black leading-9">امروز چطور می‌خوای غذا بگیری؟</h1>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onNavigate('settings')}
+            className="w-11 h-11 rounded-2xl bg-orange-500 shadow-glow-sm flex items-center justify-center"
+            aria-label="پروفایل و تنظیمات"
+          >
+            <User className="w-5 h-5 text-white" />
+          </button>
+          <ThemeToggle />
+        </div>
       </div>
 
       <div className="mt-5 rounded-[32px] glass-strong shadow-glass p-5 overflow-hidden relative">
@@ -73,7 +84,7 @@ export default function HomeScreen({ onNavigate }) {
         </p>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-3">
+      <div className="mt-5 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-3 lg:gap-4">
         <ActionCard
           icon={QrCode}
           title="اسکن QR میز"
@@ -144,6 +155,7 @@ export default function HomeScreen({ onNavigate }) {
             هنوز تاریخچه‌ای ثبت نشده. بعد از اولین سفارش، آخرین رستوران و غذا اینجا نمایش داده می‌شه.
           </p>
         )}
+      </div>
       </div>
     </div>
   )
